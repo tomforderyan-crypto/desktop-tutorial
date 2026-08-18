@@ -87,6 +87,41 @@ The server polls every 15 minutes and will:
 It stores subscriptions in `server/data/subscriptions.json` (gitignored).
 This is intentionally minimal — swap in a real database if you outgrow it.
 
+### Hosting the push server on Render (free tier)
+
+`render.yaml` at the repo root is a Render Blueprint that points at `server/`.
+
+1. Sign up at [render.com](https://render.com) (no credit card needed for
+   the free tier) and connect your GitHub account.
+2. **New +** → **Blueprint** → pick this repo. Render reads `render.yaml`
+   and proposes a `pit-lane-push-server` web service — accept it.
+3. It'll prompt for four environment variables since they're marked
+   `sync: false` in the blueprint — that means Render asks for them at
+   setup time instead of expecting them in `render.yaml`, so they never
+   end up committed to this public repo. Get a key pair by running
+   `npm run generate-vapid` in `server/` (see above) and paste its output
+   in as `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY`; set `VAPID_SUBJECT` to
+   a `mailto:` you control, and `ALLOWED_ORIGIN` to your GitHub Pages
+   origin (`https://<your-username>.github.io`, no trailing path).
+   Treat `VAPID_PRIVATE_KEY` like a secret — paste it only into Render's
+   environment variable field, never into a file that gets committed.
+4. Deploy. Render gives you a URL like
+   `https://pit-lane-push-server.onrender.com` — copy it.
+5. In the app: **Settings → Push notifications → Push server URL**, paste
+   that URL in place of `http://localhost:8787`, save, then **Enable
+   notifications**.
+
+**Free-tier caveats, so they don't surprise you:**
+- The service spins down after ~15 minutes with no incoming requests and
+  wakes on the next one — so a nudge check can be delayed until something
+  hits the server (opening the app pings it via the streak-status call,
+  which helps). This isn't fixable on the free plan; Render's paid tier
+  ($7/mo) removes it.
+- The free plan has no persistent disk, so `subscriptions.json` resets
+  on every deploy and on some cold-start cycles — if notifications stop
+  arriving, re-open **Settings → Push notifications** and hit **Enable**
+  again to re-subscribe.
+
 ### Building for production
 
 ```bash
