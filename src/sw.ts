@@ -35,14 +35,21 @@ self.addEventListener('push', (event: PushEvent) => {
     }
   }
 
+  // Resolve relative to the SW's own scope so this keeps working whether the
+  // app is served from the domain root or a subpath (e.g. GitHub Pages).
+  const iconUrl = new URL(`${import.meta.env.BASE_URL}icons/icon-192.png`, self.registration.scope).href
+  // Notification payload URLs from the push server are hash-route fragments
+  // (e.g. "#/calendar"), resolved against scope so they land inside the app.
+  const targetUrl = new URL(payload.url ?? '', self.registration.scope).href
+
   // `vibrate` is part of the Notifications API spec but missing from lib.dom's
   // NotificationOptions typing, so it's added via the wider signature below.
   const options: NotificationOptions & { vibrate?: number[] } = {
     body: payload.body,
-    icon: payload.icon ?? '/icons/icon-192.png',
-    badge: '/icons/icon-192.png',
+    icon: payload.icon ?? iconUrl,
+    badge: iconUrl,
     tag: payload.tag ?? 'pit-lane-nudge',
-    data: { url: payload.url ?? '/' },
+    data: { url: targetUrl },
     vibrate: [80, 40, 80],
   }
 
@@ -51,7 +58,7 @@ self.addEventListener('push', (event: PushEvent) => {
 
 self.addEventListener('notificationclick', (event: NotificationEvent) => {
   event.notification.close()
-  const targetUrl = (event.notification.data && event.notification.data.url) || '/'
+  const targetUrl = (event.notification.data && event.notification.data.url) || self.registration.scope
 
   event.waitUntil(
     (async () => {

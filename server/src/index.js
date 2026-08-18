@@ -56,7 +56,7 @@ app.post('/api/send-test', async (req, res) => {
   try {
     await webPush.sendNotification(
       entry.subscription,
-      JSON.stringify({ title: 'Pit Lane', body: 'Test notification — push is working.', url: '/' }),
+      JSON.stringify({ title: 'Pit Lane', body: 'Test notification — push is working.', url: '' }),
     )
     res.json({ ok: true })
   } catch (err) {
