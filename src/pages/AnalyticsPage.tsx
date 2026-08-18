@@ -7,6 +7,9 @@ import { PLATFORMS, PLATFORM_LABELS, type Platform } from '../types'
 import { getBestWindows } from '../lib/bestTime'
 import { Card, EmptyState, SectionTitle } from '../components/ui'
 import { ChartIcon, ClockIcon, PlugIcon, TrendUpIcon } from '../components/icons'
+import YoutubeConnectCard from '../components/YoutubeConnectCard'
+
+const MOCK_PLATFORMS = PLATFORMS.filter((p) => p !== 'youtube' && p !== 'youtube_shorts')
 
 const CHART_COLORS = ['#e10600', '#3b82f6', '#22c55e', '#f59e0b', '#a855f7']
 
@@ -46,15 +49,17 @@ export default function AnalyticsPage() {
     <div className="flex flex-col gap-5">
       <SectionTitle title="Analytics" />
 
+      <YoutubeConnectCard serverUrl={settings.pushServerUrl} connectedPlatforms={settings.connectedPlatforms} />
+
       <Card>
         <p className="mb-3 flex items-center gap-1.5 text-sm font-semibold">
-          <PlugIcon className="h-4 w-4" /> Connected platforms
+          <PlugIcon className="h-4 w-4" /> Other platforms
         </p>
         <p className="mb-3 text-xs text-[var(--color-text-muted)]">
           Mock connections for now — wire these to real OAuth + API calls once your accounts are live.
         </p>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-          {PLATFORMS.map((platform) => {
+          {MOCK_PLATFORMS.map((platform) => {
             const isConnected = connected.has(platform)
             return (
               <button
