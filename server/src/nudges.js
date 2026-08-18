@@ -30,7 +30,7 @@ export async function runNudgeSweep() {
         await send(subscription, {
           title: "You're falling behind",
           body: `You're ${daysBehind} day${daysBehind === 1 ? '' : 's'} behind your posting schedule. A quick short-form post gets you back on track.`,
-          url: '/calendar',
+          url: '#/calendar',
           tag: 'streak-nudge',
         })
         markNudgeSent(subscription.endpoint)
@@ -45,7 +45,7 @@ export async function runNudgeSweep() {
         await send(subscription, {
           title: 'Posting time coming up',
           body: `"${nextScheduled.title}" is scheduled for ${nextScheduled.time}. Get it ready to go out on time.`,
-          url: '/calendar',
+          url: '#/calendar',
           tag: 'post-reminder',
         })
         markReminderSent(subscription.endpoint, reminderKey)

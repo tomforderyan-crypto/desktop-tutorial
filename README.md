@@ -94,11 +94,40 @@ npm run build
 npm run preview
 ```
 
-Deploy the frontend (`dist/`) to any static host over HTTPS (required for
-service workers/push outside `localhost`) and run `server/` anywhere that
-can stay alive continuously (a small VPS, Fly.io, Render, etc.) — set
-`ALLOWED_ORIGIN` in `server/.env` to your deployed frontend's origin, and
-point the app's push server URL at it in Settings.
+### Deploying the frontend (GitHub Pages)
+
+`.github/workflows/deploy-pages.yml` builds and publishes `dist/` on every
+push to `main`. One manual, one-time step is required first (GitHub
+doesn't allow this to be automated from a workflow file):
+
+1. On GitHub: **Settings → Pages → Build and deployment → Source** → set
+   to **GitHub Actions**.
+2. Push to `main` (or run the workflow manually from the **Actions** tab)
+   and wait for the `Deploy to GitHub Pages` run to finish.
+3. Your app is live at `https://<owner>.github.io/desktop-tutorial/`. Open
+   that URL on your phone and use Add to Home Screen (iOS Safari: Share →
+   Add to Home Screen; Android Chrome: menu → Install app) to install it.
+
+A plain `npm run build` targets the root path (matches `npm run preview`
+and any other static host); the CI workflow sets `GITHUB_PAGES=true` to
+build with the `/desktop-tutorial/` prefix instead. To reproduce that
+build locally: `GITHUB_PAGES=true npm run build && GITHUB_PAGES=true npm run preview`.
+
+The app builds with `base: '/desktop-tutorial/'` and uses a hash router
+(`/#/calendar`, etc.) specifically so it works as a GitHub Pages project
+site with no server-side rewrites needed. If you ever move it to a domain
+you control (custom domain, or hosting it at the root of its own host),
+drop the `base` override in `vite.config.ts` back to `/`.
+
+**Push notifications need the companion server hosted separately** — a
+static host like GitHub Pages can't run the always-on Node process in
+`server/`. GitHub Pages alone gets you the full installable app (ideas,
+calendar, analytics, revenue — everything backed by on-device IndexedDB);
+until you host `server/` somewhere that stays running (a small VPS,
+Fly.io, Render, etc.), the "Enable notifications" button in Settings will
+surface a clear error instead of silently failing. Once it's hosted, set
+`ALLOWED_ORIGIN` in `server/.env` to your GitHub Pages origin and point
+the app's push server URL at it in Settings.
 
 ## Wiring up real analytics later
 
