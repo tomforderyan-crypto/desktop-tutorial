@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: pit-lane-push-server
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_SUBJECT
+        sync: false
+      - key: ALLOWED_ORIGIN
+        sync: false
