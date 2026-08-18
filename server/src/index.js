@@ -5,8 +5,9 @@ import cron from 'node-cron'
 import webPush from 'web-push'
 import { listSubscribers, removeSubscriber, updateStreakStatus, upsertSubscriber } from './store.js'
 import { runNudgeSweep } from './nudges.js'
+import { disconnect as disconnectYoutube, fetchChannelAnalytics, getAuthUrl, getStatus as getYoutubeStatus, handleOAuthCallback, isYoutubeConfigured } from './youtube.js'
 
-const { VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT, PORT = 8787, ALLOWED_ORIGIN } = process.env
+const { VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT, PORT = 8787, ALLOWED_ORIGIN, FRONTEND_URL } = process.env
 
 if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
   console.error('Missing VAPID keys. Run `npm run generate-vapid` and add them to server/.env, then restart.')
@@ -59,6 +60,45 @@ app.post('/api/send-test', async (req, res) => {
       JSON.stringify({ title: 'Pit Lane', body: 'Test notification — push is working.', url: '' }),
     )
     res.json({ ok: true })
+  } catch (err) {
+    res.status(502).json({ error: err.message })
+  }
+})
+
+app.get('/api/youtube/status', (_req, res) => {
+  res.json({ configured: isYoutubeConfigured(), ...getYoutubeStatus() })
+})
+
+app.get('/api/youtube/connect', (_req, res) => {
+  if (!isYoutubeConfigured()) {
+    return res.status(503).json({ error: 'YouTube is not configured on this server yet' })
+  }
+  res.redirect(getAuthUrl())
+})
+
+app.get('/api/youtube/oauth/callback', async (req, res) => {
+  const redirectBase = (FRONTEND_URL || '/').replace(/\/$/, '')
+  try {
+    const { code, error } = req.query
+    if (error) throw new Error(String(error))
+    if (!code) throw new Error('Missing authorization code')
+    await handleOAuthCallback(String(code))
+    res.redirect(`${redirectBase}/#/analytics?youtube=connected`)
+  } catch (err) {
+    console.error('YouTube OAuth callback failed', err)
+    res.redirect(`${redirectBase}/#/analytics?youtube=error`)
+  }
+})
+
+app.post('/api/youtube/disconnect', (_req, res) => {
+  disconnectYoutube()
+  res.json({ ok: true })
+})
+
+app.get('/api/youtube/sync', async (_req, res) => {
+  try {
+    const data = await fetchChannelAnalytics()
+    res.json(data)
   } catch (err) {
     res.status(502).json({ error: err.message })
   }
