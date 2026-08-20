@@ -1,53 +1,62 @@
-# Pit Lane — Motorsport Content Creator Dashboard
+# Fieldside — Live Football Stat Tracker
 
-A personal, installable PWA for a solo motorsport content creator to plan
-short- and long-form video content across YouTube, YouTube Shorts,
-Instagram, Facebook, and X — generate ideas, schedule posts, track
-analytics and revenue once live, and stay accountable to a posting
-schedule via real push notifications.
+A single-page web app for a one-person broadcast operator (commentator or
+producer) to track live play-by-play stats during a high school football
+game, for on-air use, then review afterward. Phase 1 is offense-only —
+defense is shaped so a defensive lineup can slot in later without a rebuild.
 
 ## Features
 
-- **Idea Generator** — starts broad across general motorsport topics, then
-  weights suggestions toward whatever sub-topics are performing best once
-  analytics exist. Each idea is blended with an "inspiration" note pulled
-  from what similar creators are currently doing well (framed as
-  inspiration, never copying). Like an idea to send it straight to the
-  calendar with an auto-picked time. Hashtag + caption generation is
-  available per idea and per scheduled post.
-- **Content Calendar** — month grid with short-form (green) vs long-form
-  (blue) color coding and per-entry status (planned/posted/missed); an
-  agenda list below shows full detail, caption/hashtags, and lets you mark
-  posts posted, edit time/platform, or remove them.
-- **Best Time to Post** — baseline per-platform activity estimates that
-  automatically hand off to real posting-time analysis once you have
-  enough tracked posts on a platform (see `src/lib/bestTime.ts`).
-- **Analytics** — mock/placeholder per-platform connect flow, views by
-  platform, engagement by topic (the same ranking that drives idea
-  weighting), and best-time windows. Architected so each "Connect" button
-  is where a real OAuth + API integration slots in later.
-- **Revenue Tracking** — monthly income vs. goal, breakdown by source and
-  platform, and a correlation pass that surfaces *why* something is
-  earning (topic + format + time-of-day + platform), e.g. "Your Formula 1
-  short-form posts around 3 PM on Instagram are your highest earners."
-- **Streaks & accountability** — a posting streak computed from your
-  calendar vs. what actually got marked posted, a "days behind schedule"
-  callout, and push nudges once notifications are enabled.
-- **Installable PWA with real Web Push** — manifest + custom service
-  worker (`src/sw.ts`) with `push`/`notificationclick` handlers, works with
-  iOS 16.4+ and Android once added to the home screen. Push is backed by a
-  small local server (`/server`) using VAPID.
+- **Roster import** — best-effort scrape/parse of a public MaxPreps team
+  roster page (jersey #, name, position). MaxPreps has no public API and
+  most roster pages are client-rendered, so this fails for a lot of real
+  URLs — that's expected. A "paste page source" fallback sidesteps
+  browser CORS restrictions for pages that do parse, and manual
+  add-a-player is always available regardless (`src/lib/maxpreps.ts`).
+- **Starting lineup & substitutions** — assign QB/RB/WR/TE/OL slots per
+  team; plays log against whoever's in the slot *at the time*, so
+  swapping a slot mid-drive never touches stat history already recorded
+  (`src/state/newGame.ts`, `src/pages/LineupPage.tsx`).
+- **Live play entry** — Run, Pass, Sack, Penalty, Field Goal, Safety, and
+  Punt, with player suggestions ordered for speed (RBs/QBs first for
+  runs, WR/TE first for pass targets, defensive front seven first for
+  sacks — `src/lib/playerSuggest.ts`). A full down/distance/penalty
+  engine drives field position, first downs, touchdowns, turnovers, and
+  the PAT/2pt and kickoff prompts that follow every score
+  (`src/state/downDistanceEngine.ts`, `src/state/gameEngine.ts`). Undo
+  reverts the last play by replaying the log, not by hand-patching state.
+- **Stat leaders panel** — passing/rushing/receiving leaders across both
+  rosters, derived live from the play log and built to be glanceable
+  enough to read straight off-screen on air (`src/components/LeadersPanel.tsx`).
+- **Milestone alerts** — dismissible, non-blocking toasts for in-game
+  firsts (first carry, first reception, first play over 10 yards, first
+  touchdown, and more), scoped to the current game only
+  (`src/lib/milestones.ts`).
+- **Post-game box score** — team totals plus full individual stat lines,
+  exportable as a PDF via the browser's print dialog
+  (`src/pages/BoxScorePage.tsx`).
+
+## Data model
+
+A play is the unit of truth: it records its type, the players involved by
+role (passer/target/carrier/defender), yards, the down/distance situation
+before and after, and the result. Every derived view — player stat lines,
+team totals, milestones, the box score — is computed from the play log
+(`src/lib/stats.ts`, `src/lib/milestones.ts`), never stored redundantly, so
+they can't drift out of sync. `undoLastPlay` / `recomputeFromPlays` in
+`src/state/gameEngine.ts` rebuild the entire game state by replaying the
+log, which is also what keeps that log the single source of truth.
+
+Everything lives in the browser (`localStorage`, via
+`src/storage/gameRepository.ts`) — no backend, no login. The repository is
+the only file that talks to storage, so swapping in a real backend later
+means rewriting that one file.
 
 ## Stack
 
-- React 19 + TypeScript + Vite, Tailwind CSS v4, React Router
-- Dexie (IndexedDB) for all local data — this is a single-user app, so
-  everything except push subscriptions lives entirely on-device
-- `vite-plugin-pwa` (injectManifest strategy) for the manifest + service
-  worker, Recharts for analytics charts, date-fns for date handling
-- A small Express + `web-push` server for delivering real push
-  notifications (browsers require a server with VAPID keys to send them —
-  there's no way around that from a static frontend alone)
+- React 19 + TypeScript + Vite, Tailwind CSS v4, React Router (hash router)
+- No state library beyond React context — `src/context/GameContext.tsx`
+  holds the active game and persists every mutation to `localStorage`
 
 ## Getting started
 
@@ -56,80 +65,13 @@ npm install
 npm run dev        # http://localhost:5173
 ```
 
-Open Settings → **Load demo data** to seed ~45 days of realistic mock
-posts, analytics, and revenue so every page has something to show before
-you're actually live. **Clear all data** wipes it again.
-
-### Running the push notification server
-
-Push notifications (streak nudges, posting-time reminders) need the
-companion server running:
-
 ```bash
-cd server
-npm install
-npm run generate-vapid      # prints a VAPID key pair
-cp .env.example .env        # then paste the generated keys in
-npm run dev                 # http://localhost:8787
+npm run build       # typecheck + production build
+npm run lint         # oxlint
+npm run preview      # serve the production build locally
 ```
 
-In the app, go to **Settings → Push notifications**, confirm the push
-server URL (defaults to `http://localhost:8787`), and tap **Enable
-notifications**. On iOS this only works once the app is installed to the
-home screen (Safari → Share → Add to Home Screen) and opened from there —
-Safari does not support Web Push for regular browser tabs.
-
-The server polls every 15 minutes and will:
-- nudge you if you're behind your posting schedule (at most once/day per
-  subscriber), and
-- remind you 25–40 minutes before your next scheduled post.
-
-It stores subscriptions in `server/data/subscriptions.json` (gitignored).
-This is intentionally minimal — swap in a real database if you outgrow it.
-
-### Hosting the push server on Render (free tier)
-
-`render.yaml` at the repo root is a Render Blueprint that points at `server/`.
-
-1. Sign up at [render.com](https://render.com) (no credit card needed for
-   the free tier) and connect your GitHub account.
-2. **New +** → **Blueprint** → pick this repo. Render reads `render.yaml`
-   and proposes a `pit-lane-push-server` web service — accept it.
-3. It'll prompt for four environment variables since they're marked
-   `sync: false` in the blueprint — that means Render asks for them at
-   setup time instead of expecting them in `render.yaml`, so they never
-   end up committed to this public repo. Get a key pair by running
-   `npm run generate-vapid` in `server/` (see above) and paste its output
-   in as `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY`; set `VAPID_SUBJECT` to
-   a `mailto:` you control, and `ALLOWED_ORIGIN` to your GitHub Pages
-   origin (`https://<your-username>.github.io`, no trailing path).
-   Treat `VAPID_PRIVATE_KEY` like a secret — paste it only into Render's
-   environment variable field, never into a file that gets committed.
-4. Deploy. Render gives you a URL like
-   `https://pit-lane-push-server.onrender.com` — copy it.
-5. In the app: **Settings → Push notifications → Push server URL**, paste
-   that URL in place of `http://localhost:8787`, save, then **Enable
-   notifications**.
-
-**Free-tier caveats, so they don't surprise you:**
-- The service spins down after ~15 minutes with no incoming requests and
-  wakes on the next one — so a nudge check can be delayed until something
-  hits the server (opening the app pings it via the streak-status call,
-  which helps). This isn't fixable on the free plan; Render's paid tier
-  ($7/mo) removes it.
-- The free plan has no persistent disk, so `subscriptions.json` resets
-  on every deploy and on some cold-start cycles — if notifications stop
-  arriving, re-open **Settings → Push notifications** and hit **Enable**
-  again to re-subscribe.
-
-### Building for production
-
-```bash
-npm run build
-npm run preview
-```
-
-### Deploying the frontend (GitHub Pages)
+### Deploying (GitHub Pages)
 
 `.github/workflows/deploy-pages.yml` builds and publishes `dist/` on every
 push to `main`. One manual, one-time step is required first (GitHub
@@ -139,60 +81,25 @@ doesn't allow this to be automated from a workflow file):
    to **GitHub Actions**.
 2. Push to `main` (or run the workflow manually from the **Actions** tab)
    and wait for the `Deploy to GitHub Pages` run to finish.
-3. Your app is live at `https://<owner>.github.io/desktop-tutorial/`. Open
-   that URL on your phone and use Add to Home Screen (iOS Safari: Share →
-   Add to Home Screen; Android Chrome: menu → Install app) to install it.
+3. The app is live at `https://<owner>.github.io/desktop-tutorial/`.
 
 A plain `npm run build` targets the root path (matches `npm run preview`
-and any other static host); the CI workflow sets `GITHUB_PAGES=true` to
-build with the `/desktop-tutorial/` prefix instead. To reproduce that
-build locally: `GITHUB_PAGES=true npm run build && GITHUB_PAGES=true npm run preview`.
-
-The app builds with `base: '/desktop-tutorial/'` and uses a hash router
-(`/#/calendar`, etc.) specifically so it works as a GitHub Pages project
-site with no server-side rewrites needed. If you ever move it to a domain
-you control (custom domain, or hosting it at the root of its own host),
-drop the `base` override in `vite.config.ts` back to `/`.
-
-**Push notifications need the companion server hosted separately** — a
-static host like GitHub Pages can't run the always-on Node process in
-`server/`. GitHub Pages alone gets you the full installable app (ideas,
-calendar, analytics, revenue — everything backed by on-device IndexedDB);
-until you host `server/` somewhere that stays running (a small VPS,
-Fly.io, Render, etc.), the "Enable notifications" button in Settings will
-surface a clear error instead of silently failing. Once it's hosted, set
-`ALLOWED_ORIGIN` in `server/.env` to your GitHub Pages origin and point
-the app's push server URL at it in Settings.
-
-## Wiring up real analytics later
-
-Every platform integration point is intentionally centralized:
-
-- `src/lib/bestTime.ts` — `bestWindowsFromAnalytics` already aggregates
-  real `AnalyticsSnapshot` rows by hour; once you're pulling real data in,
-  the mock baseline in the same file stops being used automatically.
-- `src/lib/ideaGenerator.ts` — `computeTopicWeights` already reads from
-  the same `analyticsSnapshots` table, so real data immediately starts
-  steering idea suggestions.
-- Analytics → "Connected platforms" is where OAuth for YouTube Data API,
-  Instagram Graph API, Facebook Graph API, and the X API would hang a real
-  connect flow; today it just toggles `settings.connectedPlatforms`.
-
-Replacing mock data means writing a sync job (client-side fetch, or a
-small backend job hitting each platform's API) that writes rows into the
-`analyticsSnapshots` table shaped like `src/types/index.ts`'s
-`AnalyticsSnapshot` — nothing else in the app needs to change.
+and any other static host); CI sets `GITHUB_PAGES=true` to build with the
+`/desktop-tutorial/` prefix instead. The app uses a hash router
+specifically so it works as a GitHub Pages project site with no
+server-side rewrites needed.
 
 ## Project structure
 
 ```
 src/
-  components/   shared UI (Layout/nav, Card/Button/Sheet, icons)
-  db/           Dexie schema
-  hooks/        settings hook
-  lib/          idea generation, hashtags, best-time, streaks, revenue
-                insights, push subscription helpers, demo data seeding
-  pages/        one file per route
-  sw.ts         custom service worker (push, notificationclick, precache)
-server/         Express + web-push notification server
+  components/   Scoreboard, PlayerPicker, LeadersPanel, milestone toasts, shared UI
+  context/      GameContext — the active game + persistence
+  lib/          stats/milestone derivation, MaxPreps parsing, player
+                suggestion ordering, play descriptions, formatting
+  pages/        Home, New Game, Lineup, Live Game, Box Score
+  state/        down/distance engine, penalty rules, the play-logging
+                engine, new-game/lineup factories
+  storage/      localStorage-backed game repository
+  types/        the Game/Play/Team/Player data model
 ```
