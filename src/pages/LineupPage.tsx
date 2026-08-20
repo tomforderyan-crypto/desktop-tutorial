@@ -1,10 +1,55 @@
+import { useRef, useState, type ChangeEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import type { LineupGroup, Team } from '../types'
 import { useGame } from '../context/GameContext'
 import { Button, Card, Label, Select } from '../components/ui'
+import { PlayerAvatar } from '../components/PlayerAvatar'
 import { makeId } from '../lib/id'
+import { readImageAsDataUrl } from '../lib/image'
+import { setPlayerPhoto } from '../state/newGame'
 
 const GROUPS: LineupGroup[] = ['QB', 'RB', 'WR', 'TE', 'OL']
+
+function SlotPhoto({ team, playerId }: { team: Team; playerId: string | null }) {
+  const { setGame } = useGame()
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [busy, setBusy] = useState(false)
+  const player = team.roster.find((p) => p.id === playerId) ?? null
+
+  const onFile = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file || !player) return
+    setBusy(true)
+    try {
+      const dataUrl = await readImageAsDataUrl(file)
+      setGame((g) => setPlayerPhoto(g, team.id, player.id, dataUrl))
+    } catch {
+      // Not a fatal issue for live-speed use — the player still shows their number/name.
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      disabled={!player}
+      onClick={() => inputRef.current?.click()}
+      className="relative shrink-0 rounded-full disabled:cursor-not-allowed"
+      aria-label={player ? `Change photo for ${player.name}` : 'No player assigned'}
+      title={player ? 'Click to add/change photo' : undefined}
+    >
+      <PlayerAvatar player={player} size={32} />
+      {player && (
+        <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full border border-[var(--color-surface)] bg-[var(--color-amber)] text-[8px] leading-none text-[#1a1204]">
+          {busy ? '…' : '+'}
+        </span>
+      )}
+      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={onFile} />
+    </button>
+  )
+}
 
 function TeamLineupEditor({ team }: { team: Team }) {
   const { game, setGame } = useGame()
@@ -71,6 +116,7 @@ function TeamLineupEditor({ team }: { team: Team }) {
               .map((slot) => (
                 <div key={slot.id} className="flex items-center gap-2">
                   <span className="w-10 shrink-0 font-mono text-xs text-[var(--color-text-dim)]">{slot.label}</span>
+                  <SlotPhoto team={team} playerId={slot.playerId} />
                   <Select value={slot.playerId ?? ''} onChange={(e) => setSlotPlayer(slot.id, e.target.value)} className="flex-1">
                     <option value="">— empty —</option>
                     {team.roster.map((p) => (

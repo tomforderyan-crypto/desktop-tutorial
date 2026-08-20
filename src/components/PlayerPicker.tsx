@@ -1,6 +1,7 @@
 import { useId, useMemo, useState } from 'react'
 import type { Player } from '../types'
 import { Label, TextInput } from './ui'
+import { PlayerAvatar } from './PlayerAvatar'
 
 function matches(player: Player, query: string): boolean {
   const q = query.trim().toLowerCase()
@@ -53,6 +54,7 @@ export function PlayerPicker({
                   : 'border-[var(--color-border-bright)] bg-[var(--color-bg)] text-[var(--color-text)] hover:border-[var(--color-amber)]/60'
               }`}
             >
+              <PlayerAvatar player={p} size={22} />
               <span className="font-mono font-semibold">#{p.number}</span> <span>{p.name}</span>
             </button>
           )
