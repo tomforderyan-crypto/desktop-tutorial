@@ -1,6 +1,7 @@
-export function generateId(): string {
-  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
-    return crypto.randomUUID()
-  }
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+export function makeId(prefix?: string): string {
+  const raw =
+    typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
+  return prefix ? `${prefix}_${raw}` : raw
 }
