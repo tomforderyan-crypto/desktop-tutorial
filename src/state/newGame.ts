@@ -10,6 +10,16 @@ export function createTeam(name: string): Team {
   return { id: makeId('team'), name, roster: [] }
 }
 
+/** Update one player's headshot in place, wherever they live on the game
+ * (teamA or teamB roster) — the only mutation path for `photoDataUrl`. */
+export function setPlayerPhoto(game: Game, teamId: string, playerId: string, photoDataUrl: string | undefined): Game {
+  const isTeamA = game.teamA.id === teamId
+  const team = isTeamA ? game.teamA : game.teamB
+  if (team.id !== teamId) return game
+  const roster = team.roster.map((p) => (p.id === playerId ? { ...p, photoDataUrl } : p))
+  return isTeamA ? { ...game, teamA: { ...team, roster } } : { ...game, teamB: { ...team, roster } }
+}
+
 const DEFAULT_SLOTS: { group: LineupGroup; label: string }[] = [
   { group: 'QB', label: 'QB' },
   { group: 'RB', label: 'RB1' },

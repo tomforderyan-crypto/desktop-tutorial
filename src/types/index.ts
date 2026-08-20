@@ -17,6 +17,8 @@ export interface Player {
   position: RosterPosition
   /** Raw position text as scraped/entered, before mapping to RosterPosition. */
   rawPosition?: string
+  /** Small downscaled headshot, stored as a data URL (no backend to host files). */
+  photoDataUrl?: string
 }
 
 export interface Team {
