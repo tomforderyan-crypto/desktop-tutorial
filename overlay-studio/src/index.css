@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+@theme {
+  /* Control-room palette: near-black base, violet/cyan control-panel accents */
+  --color-ink: #05060a;
+  --color-bg: #0a0c12;
+  --color-surface: #12141d;
+  --color-surface-alt: #191c28;
+  --color-border: #262a3a;
+  --color-border-bright: #363c52;
+  --color-accent: #7c5cff;
+  --color-accent-soft: #a793ff;
+  --color-cyan: #35d7d0;
+  --color-text: #eef0f7;
+  --color-text-muted: #9296ab;
+  --color-text-dim: #5c6078;
+  --color-good: #3ecf7e;
+  --color-bad: #ef5757;
+
+  --font-display: "Teko", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+html {
+  color-scheme: dark;
+}
+
+/* Overlay routes render on a transparent stage (OBS Browser Source captures
+   alpha) — only the control/home shell paints an opaque studio background. */
+body {
+  background: transparent;
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+body.studio-shell {
+  background-color: var(--color-bg);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(124, 92, 255, 0.08), transparent),
+    linear-gradient(180deg, var(--color-ink) 0%, var(--color-bg) 240px);
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-bright);
+  border-radius: 999px;
+}
+
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: 0.01em;
+}
+.font-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes ticker-scroll {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}

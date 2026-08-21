@@ -94,6 +94,10 @@ and any other static host); CI sets `GITHUB_PAGES=true` to build with the
 specifically so it works as a GitHub Pages project site with no
 server-side rewrites needed.
 
+The same workflow also builds and deploys **[Overlay Studio](overlay-studio/README.md)**,
+a separate, unrelated app in `overlay-studio/`, alongside this one — it
+ends up live at `https://<owner>.github.io/desktop-tutorial/overlay-studio/`.
+
 ## Project structure
 
 ```
