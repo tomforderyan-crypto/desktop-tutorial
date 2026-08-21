@@ -68,6 +68,14 @@ body {
   padding-top: env(safe-area-inset-top);
 }
 
+/* Overlay page only (OBS/vMix Browser Source) — no background, no image,
+ * so the card renders over whatever the broadcast is already showing. */
+html.overlay-transparent,
+body.overlay-transparent {
+  background: transparent !important;
+  background-image: none !important;
+}
+
 @media print {
   body {
     background: #fff !important;

@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Runtime state written by the overlay bridge server (server/broadcast-server.mjs)
+server/data/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -41,6 +41,47 @@ defense is shaped so a defensive lineup can slot in later without a rebuild.
   exportable as a PDF via the browser's print dialog
   (`src/pages/BoxScorePage.tsx`).
 
+## Broadcast overlay (OBS/vMix stat card)
+
+A companion "stat card" lower-third for use as a Browser Source during live
+commentary, driven off the same play log as everything else — no separate
+data entry.
+
+- **Control Panel** (`/#/game/:gameId/control`, linked from the "Overlay
+  Control" button on the Live Game page) — a normal browser tab. Set each
+  team's primary/secondary hex colors once before kickoff, then click a
+  roster player to show their card; click them again (or "Dismiss Card") to
+  hide it. Fully manual — nothing shows or hides on a timer.
+- **Overlay** (`/#/overlay`) — a transparent, chrome-free page (no header,
+  no background) meant only to be pasted into an OBS or vMix Browser Source.
+  It shows exactly one broadcast-style stat card, skinned in the selected
+  player's team colors, with a snappy slide/fade in and out. The stat line
+  shown is chosen by position — passing for QBs, rushing for RBs/FBs,
+  receiving for WRs/TEs, sacks for defensive positions (`src/lib/broadcast.ts`).
+- **Bridge server** (`server/broadcast-server.mjs`) — a small local Node
+  process the Control Panel and Overlay both talk to over a WebSocket, so a
+  click in one appears in the other instantly with no polling delay. It also
+  writes the live game's stat line for every player out to
+  `server/data/stats.json` on every play (the "data bridge"), and persists
+  the current overlay selection to `server/data/overlay-state.json` so a
+  restart doesn't lose it.
+
+Run it alongside the normal dev server:
+
+```bash
+npm run overlay-server   # starts the bridge on http://localhost:8787
+npm run dev               # the tracker, control panel, and overlay all live here
+```
+
+Paste `http://localhost:5173/#/overlay` into your OBS/vMix Browser Source
+(the Control Panel has a copy-to-clipboard button for this URL). The bridge
+server is optional — if it isn't running, the tracker itself works exactly
+as before; only the overlay/control sync is unavailable.
+
+Defensive stat lines currently show sacks only — the play log doesn't yet
+attribute tackles or interceptions to a specific defender, so those aren't
+in `stats.json` either.
+
 ## Data model
 
 A play is the unit of truth: it records its type, the players involved by
@@ -88,6 +129,11 @@ doesn't allow this to be automated from a workflow file):
    and wait for the `Deploy to GitHub Pages` run to finish.
 3. The app is live at `https://<owner>.github.io/desktop-tutorial/`.
 
+GitHub Pages is static hosting only — it can't run `server/broadcast-server.mjs`,
+so the overlay/control panel sync described above only works when running
+locally (`npm run dev` + `npm run overlay-server`), which is also what a
+Browser Source in OBS/vMix needs anyway (a `localhost` URL, not a hosted one).
+
 A plain `npm run build` targets the root path (matches `npm run preview`
 and any other static host); CI sets `GITHUB_PAGES=true` to build with the
 `/desktop-tutorial/` prefix instead. The app uses a hash router
@@ -98,13 +144,22 @@ server-side rewrites needed.
 
 ```
 src/
-  components/   Scoreboard, PlayerPicker, LeadersPanel, milestone toasts, shared UI
-  context/      GameContext — the active game + persistence
+  components/   Scoreboard, PlayerPicker, LeadersPanel, milestone toasts,
+                StatCard (broadcast overlay card), shared UI
+  context/      GameContext — the active game + persistence, and pushes
+                broadcast state to the overlay bridge on every change
   lib/          stats/milestone derivation, MaxPreps parsing, player
-                suggestion ordering, play descriptions, formatting
-  pages/        Home, New Game, Lineup, Live Game, Box Score
+                suggestion ordering, play descriptions, formatting,
+                broadcast.ts (Game → overlay JSON) + broadcastClient.ts
+                (WebSocket hook shared by the Overlay/Control Panel pages)
+  pages/        Home, New Game, Lineup, Live Game, Box Score, Control Panel,
+                Overlay (the transparent OBS/vMix Browser Source page)
   state/        down/distance engine, penalty rules, the play-logging
                 engine, new-game/lineup factories
   storage/      localStorage-backed game repository
+server/
+  broadcast-server.mjs   local Node bridge: stats.json + overlay selection,
+                          relayed live over WebSocket (see "Broadcast
+                          overlay" above)
   types/        the Game/Play/Team/Player data model
 ```
