@@ -6,8 +6,19 @@ export function createPlayer(input: { number: string; name: string; position: Ro
   return { id: makeId('player'), number: input.number, name: input.name, position: input.position, rawPosition: input.rawPosition }
 }
 
+/** Default overlay colors until the operator sets real team colors in the
+ * Control Panel — distinguishable but clearly placeholder. */
+const DEFAULT_PRIMARY_COLOR = '#f0a828'
+const DEFAULT_SECONDARY_COLOR = '#0a0f14'
+
 export function createTeam(name: string): Team {
-  return { id: makeId('team'), name, roster: [] }
+  return {
+    id: makeId('team'),
+    name,
+    roster: [],
+    primaryColor: DEFAULT_PRIMARY_COLOR,
+    secondaryColor: DEFAULT_SECONDARY_COLOR,
+  }
 }
 
 /** Update one player's headshot in place, wherever they live on the game

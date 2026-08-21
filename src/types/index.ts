@@ -25,6 +25,9 @@ export interface Team {
   id: string
   name: string
   roster: Player[]
+  /** Broadcast overlay skin, set from the Control Panel before kickoff. */
+  primaryColor: string
+  secondaryColor: string
 }
 
 // ---------------------------------------------------------------------------

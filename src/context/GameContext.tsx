@@ -1,6 +1,7 @@
-import { createContext, useCallback, useContext, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
 import type { Game } from '../types'
 import { loadGame, saveGame } from '../storage/gameRepository'
+import { pushBroadcastState } from '../lib/broadcast'
 
 interface GameContextValue {
   game: Game
@@ -22,6 +23,13 @@ export function GameProvider({ gameId, children }: { gameId: string; children: R
       return next
     })
   }, [])
+
+  // Keeps the overlay bridge server's stats.json (and the Overlay/Control
+  // Panel pages, via its WebSocket) in sync with every play, sub, or team
+  // color change — from whichever page currently has this game open.
+  useEffect(() => {
+    if (game) pushBroadcastState(game)
+  }, [game])
 
   if (!game) {
     return (

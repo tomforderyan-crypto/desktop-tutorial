@@ -350,6 +350,7 @@ export default function LiveGamePage() {
           </div>
           <div className="flex gap-2">
             <Button size="sm" variant="ghost" onClick={() => navigate(`/game/${gameId}/lineup`)}>Lineup / Subs</Button>
+            <Button size="sm" variant="ghost" onClick={() => navigate(`/game/${gameId}/control`)}>Overlay Control</Button>
             <Button size="sm" variant="ghost" onClick={endGame}>End Game</Button>
           </div>
         </div>
