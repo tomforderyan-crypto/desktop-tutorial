@@ -16,6 +16,15 @@ folder, different app, nothing shared.
   one per graphic, meant to be added to OBS as Browser Sources. Each one
   updates live as you edit it in the Control Panel.
 
+## Live URL
+
+`../.github/workflows/deploy-pages.yml` (shared with the Fieldside app at
+the repo root) builds and deploys this app on every push to `main`, live at
+`https://<owner>.github.io/desktop-tutorial/overlay-studio/` — use that
+same URL both to open the Control Panel (`#/control`) from any browser and
+as the Browser Source URLs you paste into OBS, so nothing depends on your
+computer staying on and running `npm run dev`.
+
 ## Getting started
 
 ```bash
@@ -35,16 +44,19 @@ npm run preview      # serve the production build locally
 
 ## Setting it up in OBS (same computer as your control panel)
 
-1. Run `npm run dev` and leave that terminal window open the whole time
-   you're broadcasting — it's what actually serves the pages.
-2. In OBS, for each overlay you want on screen: **Sources → + → Browser
+Use the **live URL** (above) for everything below — no need to keep a
+terminal running `npm run dev` open during a broadcast. (Running locally
+instead works exactly the same way, just with `http://localhost:5173`
+URLs in place of the `github.io` ones.)
+
+1. In OBS, for each overlay you want on screen: **Sources → + → Browser
    Source**. Paste that overlay's URL (from the home page or the Control
    Panel), set width/height to your canvas size (e.g. 1920×1080), and make
    sure **"Shutdown source when not visible"** is **unchecked**.
-3. To edit things live *while OBS is open*, add the Control Panel as an OBS
+2. To edit things live *while OBS is open*, add the Control Panel as an OBS
    **dock** instead of using a normal browser tab: **View → Docks → Custom
    Browser Docks…**, give it a name, and paste
-   `http://localhost:5173/#/control`.
+   `https://<owner>.github.io/desktop-tutorial/overlay-studio/#/control`.
 
    This step matters: OBS Browser Sources and Custom Browser Docks share
    one internal browser engine, so changes you make in the docked Control
@@ -53,7 +65,7 @@ npm run preview      # serve the production build locally
    live — you'd have to keep refreshing the Browser Source by hand. Two
    regular tabs of the **same** browser sync fine with each other too, if
    you just want to preview an overlay without OBS.
-4. Everything you set is also saved in that browser's storage, so reopening
+3. Everything you set is also saved in that browser's storage, so reopening
    the Control Panel dock keeps your last scores/settings.
 
 ## Loading player/game data

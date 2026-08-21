@@ -27,6 +27,18 @@ jobs:
       - run: npm run build
         env:
           GITHUB_PAGES: true
+      - run: npm ci
+        working-directory: overlay-studio
+      - run: npm run build
+        working-directory: overlay-studio
+        env:
+          GITHUB_PAGES: true
+      # Fieldside owns the site root; Overlay Studio is a separate app nested
+      # under /overlay-studio/ in the same Pages deployment (GitHub Pages
+      # only serves one artifact per repo).
+      - run: |
+          mkdir -p dist/overlay-studio
+          cp -r overlay-studio/dist/. dist/overlay-studio/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
