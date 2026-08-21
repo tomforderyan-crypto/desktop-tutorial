@@ -13,6 +13,11 @@ defense is shaped so a defensive lineup can slot in later without a rebuild.
   URLs — that's expected. A "paste page source" fallback sidesteps
   browser CORS restrictions for pages that do parse, and manual
   add-a-player is always available regardless (`src/lib/maxpreps.ts`).
+  A photo of a printed roster sheet is a third option — on-device text
+  recognition (`tesseract.js`) reads off #/name/position per line
+  (`src/lib/rosterOcr.ts`), and every result lands in an editable review
+  table before anything's added, since OCR on a photo is never perfect.
+  Needs an internet connection the first time to fetch the recognizer.
 - **Starting lineup & substitutions** — assign QB/RB/WR/TE/OL slots per
   team; plays log against whoever's in the slot *at the time*, so
   swapping a slot mid-drive never touches stat history already recorded
