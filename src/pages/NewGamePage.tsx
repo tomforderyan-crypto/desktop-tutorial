@@ -69,13 +69,18 @@ function RosterEditor({ team, onChange }: { team: Team; onChange: (team: Team) =
 
   return (
     <Card className="p-4">
-      <Label>Team Name</Label>
+      <Label>Team Name *</Label>
       <TextInput
         value={team.name}
         onChange={(e) => onChange({ ...team, name: e.target.value })}
         placeholder="e.g. Central High Cougars"
-        className="mb-4"
+        className={`mb-4 ${!team.name.trim() && team.roster.length > 0 ? 'border-[var(--color-flag)]' : ''}`}
       />
+      {!team.name.trim() && team.roster.length > 0 && (
+        <p className="-mt-3 mb-4 text-xs text-[var(--color-flag)]">
+          Roster's in, but this team still needs a name before you can continue.
+        </p>
+      )}
 
       <Label>Import roster from MaxPreps</Label>
       <div className="mb-2 flex gap-2">
@@ -182,7 +187,12 @@ export default function NewGamePage() {
   const [teamA, setTeamA] = useState<Team>(() => createTeam(''))
   const [teamB, setTeamB] = useState<Team>(() => createTeam(''))
 
-  const canContinue = teamA.name.trim() && teamB.name.trim() && teamA.roster.length > 0 && teamB.roster.length > 0
+  const missing: string[] = []
+  if (!teamA.name.trim()) missing.push('a name for the first team')
+  if (!teamB.name.trim()) missing.push('a name for the second team')
+  if (teamA.roster.length === 0) missing.push('at least one player on the first team')
+  if (teamB.roster.length === 0) missing.push('at least one player on the second team')
+  const canContinue = missing.length === 0
 
   const continueToLineup = () => {
     const game = createGame(teamA, teamB)
@@ -204,7 +214,10 @@ export default function NewGamePage() {
         <RosterEditor team={teamB} onChange={setTeamB} />
       </div>
 
-      <div className="mt-6 flex justify-end">
+      <div className="mt-6 flex flex-col items-end gap-2">
+        {missing.length > 0 && (
+          <p className="text-sm text-[var(--color-flag)]">Still need: {missing.join(', ')}.</p>
+        )}
         <Button variant="primary" size="lg" onClick={continueToLineup} disabled={!canContinue}>
           Continue to Lineup →
         </Button>
