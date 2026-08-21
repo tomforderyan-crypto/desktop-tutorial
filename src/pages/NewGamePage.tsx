@@ -194,11 +194,11 @@ export default function NewGamePage() {
   if (teamB.roster.length === 0) missing.push('at least one player on the second team')
   const canContinue = missing.length === 0
 
-  const continueToLineup = () => {
+  const startGame = () => {
     const game = createGame(teamA, teamB)
-    game.status = 'lineup'
+    game.status = 'live'
     saveGame(game)
-    navigate(`/game/${game.id}/lineup`)
+    navigate(`/game/${game.id}/live`)
   }
 
   return (
@@ -206,7 +206,8 @@ export default function NewGamePage() {
       <h1 className="mb-1 font-display text-4xl tracking-wide">New Game</h1>
       <p className="mb-6 text-sm text-[var(--color-text-muted)]">
         Enter both teams and their rosters. Import from MaxPreps or a photo of a printed roster is best-effort — add players
-        manually if either doesn't parse cleanly.
+        manually if either doesn't parse cleanly. No need to set a starting lineup first — jump straight into the game and
+        pick players play by play, or set QB/RB/WR slots anytime from Lineup / Subs once you're in.
       </p>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -218,8 +219,8 @@ export default function NewGamePage() {
         {missing.length > 0 && (
           <p className="text-sm text-[var(--color-flag)]">Still need: {missing.join(', ')}.</p>
         )}
-        <Button variant="primary" size="lg" onClick={continueToLineup} disabled={!canContinue}>
-          Continue to Lineup →
+        <Button variant="primary" size="lg" onClick={startGame} disabled={!canContinue}>
+          Start Game →
         </Button>
       </div>
     </div>
