@@ -6,6 +6,8 @@ import NewGamePage from './pages/NewGamePage'
 import LineupPage from './pages/LineupPage'
 import LiveGamePage from './pages/LiveGamePage'
 import BoxScorePage from './pages/BoxScorePage'
+import OverlaySettingsPage from './pages/OverlaySettingsPage'
+import OverlayPage from './pages/OverlayPage'
 import { GameProvider } from './context/GameContext'
 
 function GameRoute({ children }: { children: ReactNode }) {
@@ -21,9 +23,11 @@ function GameRoute({ children }: { children: ReactNode }) {
 export default function App() {
   return (
     <Routes>
+      <Route path="/overlay/:gameId" element={<OverlayPage />} />
       <Route element={<Layout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/new" element={<NewGamePage />} />
+        <Route path="/settings" element={<OverlaySettingsPage />} />
         <Route
           path="/game/:gameId/lineup"
           element={

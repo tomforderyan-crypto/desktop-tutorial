@@ -11,6 +11,12 @@ export default function Layout() {
           <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--color-text-dim)]">
             live stat tracker
           </span>
+          <Link
+            to="/settings"
+            className="ml-auto font-mono text-[10px] uppercase tracking-widest text-[var(--color-text-dim)] hover:text-[var(--color-amber-soft)]"
+          >
+            Overlay Settings
+          </Link>
         </div>
       </header>
       <main>

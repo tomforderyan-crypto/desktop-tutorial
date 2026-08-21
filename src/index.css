@@ -68,6 +68,13 @@ body {
   padding-top: env(safe-area-inset-top);
 }
 
+/* Applied to <html> and <body> on the overlay page so OBS's Browser Source
+   captures a transparent canvas instead of the app's usual dark gradient. */
+.overlay-transparent {
+  background: transparent !important;
+  background-image: none !important;
+}
+
 @media print {
   body {
     background: #fff !important;
