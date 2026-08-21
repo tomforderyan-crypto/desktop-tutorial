@@ -11,13 +11,17 @@ export class MaxPrepsImportError extends Error {}
 
 const POSITION_MAP: Record<string, RosterPosition> = {
   QB: 'QB', RB: 'RB', HB: 'RB', TB: 'RB', FB: 'FB', WR: 'WR', SE: 'WR', FL: 'WR', TE: 'TE',
-  OL: 'OL', OT: 'OT', LT: 'OT', RT: 'OT', OG: 'OG', LG: 'OG', RG: 'OG', G: 'OG', C: 'C',
+  OL: 'OL', OT: 'OT', T: 'OT', LT: 'OT', RT: 'OT', OG: 'OG', G: 'OG', LG: 'OG', RG: 'OG', C: 'C',
   DL: 'DL', DE: 'DE', DT: 'DT', NG: 'NG', NT: 'NG', LB: 'LB', ILB: 'LB', OLB: 'LB', MLB: 'LB',
   CB: 'CB', S: 'S', SS: 'S', FS: 'S', DB: 'DB', K: 'K', PK: 'K', P: 'P', ATH: 'ATH',
 }
 
+/** Roster pages often list multiple positions for one player (e.g. "TE, WR"
+ * or "OLB, RB") — take the first as primary rather than failing to match at
+ * all on the combined string. */
 export function normalizePosition(raw: string): RosterPosition {
-  const clean = raw.trim().toUpperCase().replace(/[^A-Z]/g, '')
+  const primary = raw.split(',')[0] ?? raw
+  const clean = primary.trim().toUpperCase().replace(/[^A-Z]/g, '')
   return POSITION_MAP[clean] ?? 'OTHER'
 }
 
@@ -56,7 +60,7 @@ export function parseRosterHtml(html: string): { players: ImportedPlayer[]; warn
 
     const headerCells = Array.from(rows[0].querySelectorAll('th,td')).map((c) => (c.textContent ?? '').trim().toUpperCase())
     const numberCol = headerCells.findIndex((c) => c === '#' || c === 'NO' || c === 'NO.' || c === 'NUM')
-    const nameCol = headerCells.findIndex((c) => c.includes('NAME'))
+    const nameCol = headerCells.findIndex((c) => c.includes('NAME') || c === 'PLAYER')
     const posCol = headerCells.findIndex((c) => c === 'POS' || c === 'POS.' || c.includes('POSITION'))
     if (numberCol === -1 || nameCol === -1 || posCol === -1) continue
 
