@@ -5,6 +5,7 @@ import { Button, Card, Label, Select, TextInput } from '../components/ui'
 import { createGame, createPlayer, createTeam } from '../state/newGame'
 import { saveGame } from '../storage/gameRepository'
 import { importMaxPrepsRosterFromUrl, parseRosterHtml, MaxPrepsImportError } from '../lib/maxpreps'
+import { RosterPhotoImport } from '../components/RosterPhotoImport'
 
 const POSITIONS: RosterPosition[] = [
   'QB', 'RB', 'FB', 'WR', 'TE', 'OL', 'OT', 'OG', 'C',
@@ -123,6 +124,9 @@ function RosterEditor({ team, onChange }: { team: Team; onChange: (team: Team) =
         </p>
       )}
 
+      <Label>Or import from a photo of a printed roster</Label>
+      <RosterPhotoImport onImport={addPlayers} />
+
       <Label>Add player manually</Label>
       <div className="mb-4 flex flex-wrap gap-2">
         <TextInput
@@ -191,7 +195,8 @@ export default function NewGamePage() {
     <div className="mx-auto max-w-4xl px-4 py-8">
       <h1 className="mb-1 font-display text-4xl tracking-wide">New Game</h1>
       <p className="mb-6 text-sm text-[var(--color-text-muted)]">
-        Enter both teams and their rosters. Import from MaxPreps is best-effort — add players manually if it doesn't parse.
+        Enter both teams and their rosters. Import from MaxPreps or a photo of a printed roster is best-effort — add players
+        manually if either doesn't parse cleanly.
       </p>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
