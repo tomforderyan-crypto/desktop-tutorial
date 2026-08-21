@@ -1,6 +1,8 @@
-import { createContext, useCallback, useContext, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
 import type { Game } from '../types'
 import { loadGame, saveGame } from '../storage/gameRepository'
+import { toOverlayState } from '../lib/overlay'
+import { publishOverlayState } from '../lib/overlaySync'
 
 interface GameContextValue {
   game: Game
@@ -22,6 +24,10 @@ export function GameProvider({ gameId, children }: { gameId: string; children: R
       return next
     })
   }, [])
+
+  useEffect(() => {
+    if (game) void publishOverlayState(game.id, toOverlayState(game))
+  }, [game])
 
   if (!game) {
     return (

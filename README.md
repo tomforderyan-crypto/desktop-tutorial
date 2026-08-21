@@ -40,6 +40,19 @@ defense is shaped so a defensive lineup can slot in later without a rebuild.
 - **Post-game box score** — team totals plus full individual stat lines,
   exportable as a PDF via the browser's print dialog
   (`src/pages/BoxScorePage.tsx`).
+- **Broadcast overlay graphic** — a transparent-background scorebug
+  (`/#/overlay/:gameId`, `src/pages/OverlayPage.tsx`) meant for an OBS
+  Browser Source or similar capture tool. Since a Browser Source runs a
+  separate browser process from wherever the tracker itself is open, it
+  can't read this browser's `localStorage`; the tracker instead relays a
+  distilled game snapshot (score, quarter, down & distance, possession) to
+  a Firebase Realtime Database the operator connects once, and the overlay
+  subscribes to it live. Configure the connection and copy the overlay URL
+  from **Overlay Settings** (`/#/settings`, `src/pages/OverlaySettingsPage.tsx`) —
+  the config is entered per-browser (a personal Firebase project, free
+  tier) and stored only in `localStorage`, so the app stays a static,
+  backend-free deploy (`src/lib/firebaseConfig.ts`, `src/lib/overlaySync.ts`,
+  `src/lib/overlay.ts`).
 
 ## Data model
 
@@ -102,7 +115,8 @@ src/
   context/      GameContext — the active game + persistence
   lib/          stats/milestone derivation, MaxPreps parsing, player
                 suggestion ordering, play descriptions, formatting
-  pages/        Home, New Game, Lineup, Live Game, Box Score
+  pages/        Home, New Game, Lineup, Live Game, Box Score, Overlay,
+                Overlay Settings
   state/        down/distance engine, penalty rules, the play-logging
                 engine, new-game/lineup factories
   storage/      localStorage-backed game repository
