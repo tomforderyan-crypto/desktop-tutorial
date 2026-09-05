@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "Wake County Speedway",
+    "slug": "wake-county-speedway",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "platforms": ["ios"],
+    "ios": {
+      "bundleIdentifier": "com.wakecountyspeedway.app",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Used to show race-day weather and directions for your location."
+      }
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#c8102e"
+        }
+      ]
+    ],
+    "extra": {
+      "myRacePassTrackId": 2800
+    }
+  }
+}
