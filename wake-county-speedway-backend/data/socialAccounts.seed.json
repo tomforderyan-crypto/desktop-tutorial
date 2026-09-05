@@ -1,0 +1,14 @@
+[
+  {
+    "id": "wcs-facebook",
+    "platform": "facebook",
+    "handle": "WakeCountySpeedway",
+    "displayName": "Wake County Speedway"
+  },
+  {
+    "id": "wcs-instagram",
+    "platform": "instagram",
+    "handle": "wakecountyspeedway",
+    "displayName": "Wake County Speedway"
+  }
+]

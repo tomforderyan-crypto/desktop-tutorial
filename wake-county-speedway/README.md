@@ -6,6 +6,14 @@ Store. This is a clean-slate build — no code from any prior prototype was
 reused, though the earlier HTML prototype's navigation/IA ideas and the
 points-standings Google Apps Script informed the data model below.
 
+A small backend lives alongside this app in
+[`../wake-county-speedway-backend`](../wake-county-speedway-backend/README.md) —
+it holds the Mux and Stripe secrets and serves the editable-without-a-release
+content (banner ads, food vendors, social accounts). Run it locally (or
+point at a deployed instance) and set `EXPO_PUBLIC_CMS_BASE_URL` to enable
+the real merch checkout and live-status feed; without it, both fall back to
+mocks so the app still runs standalone.
+
 ## Why Expo
 
 Plain React Native CLI needs Xcode/CocoaPods to do anything, which isn't
@@ -13,9 +21,10 @@ available in this build environment and isn't needed yet since the Apple
 Developer enrollment is still pending anyway. Expo's managed workflow is
 still React Native under the hood (same `react-native` core, same APIs) and
 lets the whole app — screens, navigation, mock data — be built and
-typechecked now. `react-native-iap` (native module) and full StoreKit
-testing require an EAS Build or bare workflow once enrollment clears; see
-**Blockers** below.
+typechecked now. `react-native-iap` and `@stripe/stripe-react-native` are
+both native modules; full StoreKit and real-card testing require an EAS
+Build or bare workflow once enrollment clears (Stripe's PaymentSheet in
+particular needs a custom dev client — it isn't available in plain Expo Go).
 
 ## Status of the two pending blockers
 
@@ -60,7 +69,8 @@ src/
                           widget, live badge
   context/                CartContext (merch), SubscriptionContext (Fan Pass)
   services/               subscription.ts (StoreKit), merchCheckout.ts
-                          (external payment), notifications.ts (push)
+                          (Stripe PaymentIntent + PaymentSheet),
+                          notifications.ts (push)
   theme/                  Colors, spacing, typography
 docs/
   PUSH_NOTIFICATIONS.md   How staff send a rainout alert today, no admin
@@ -72,7 +82,8 @@ docs/
 1. **Point Standings** — `screens/StandingsScreen.tsx` (by division) →
    `StandingsDetailScreen.tsx`, from `api/myRacePassClient.ts`.
 2. **Merchandise Store** — `screens/merch/*` (Catalog → Product Detail →
-   Cart → Checkout), `context/CartContext.tsx`, `services/merchCheckout.ts`.
+   Cart → Checkout), `context/CartContext.tsx`, `services/merchCheckout.ts`
+   (Stripe PaymentSheet against the backend, mock fallback with no backend).
 3. **Livestream Link** — `screens/LivestreamScreen.tsx`, `api/mux.ts`,
    gated by `context/SubscriptionContext.tsx`.
 4. **Social Media Feed** — `screens/SocialFeedScreen.tsx`,
@@ -110,9 +121,11 @@ Store Review Guidelines, and mixing them up is a common rejection reason:
   goods shipped to the fan. Guideline 3.1.5(a) exempts physical
   goods/services from the IAP requirement, and Apple does not allow
   StoreKit to be used for a shipped physical good in the first place.
-  `services/merchCheckout.ts` is deliberately **not** StoreKit — it's a
-  stub for an external processor (Stripe, Shopify, etc.) and the checkout
-  screen says so explicitly to the fan.
+  `services/merchCheckout.ts` is deliberately **not** StoreKit — checkout
+  uses `@stripe/stripe-react-native`'s PaymentSheet against a PaymentIntent
+  created by the backend (`wake-county-speedway-backend`, which holds the
+  Stripe secret key and is the source of truth for prices), and the
+  checkout screen says so explicitly to the fan.
 
 Net: only the subscription goes through StoreKit. If a future feature adds
 digital-only merch (a wallpaper pack, a digital program), that would need
@@ -130,19 +143,27 @@ Environment variables (all optional — everything mocks by default):
 
 - `EXPO_PUBLIC_MYRACEPASS_API_KEY`
 - `EXPO_PUBLIC_OPENWEATHER_API_KEY`
-- `EXPO_PUBLIC_CMS_BASE_URL` — backend for banner ads / food vendors /
-  social accounts / Mux live-status proxy
+- `EXPO_PUBLIC_CMS_BASE_URL` — the backend's URL (banner ads / food vendors
+  / social accounts / Mux live-status proxy / Stripe checkout). Run
+  `wake-county-speedway-backend` locally at its default `http://localhost:4000`
+  to try the real merch checkout flow.
+- `EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY` — Stripe's publishable (not secret)
+  key; safe to embed client-side. Needed for `StripeProvider` in `App.tsx`
+  to actually talk to Stripe rather than just no-op.
 
 ## Known gaps to close before App Store submission
 
-- Swap every `USE_MOCK = true` flag once the corresponding key/backend
-  exists (each API module documents exactly what to change).
-- Stand up the small backend behind `EXPO_PUBLIC_CMS_BASE_URL` — it holds
-  the Mux secret token (never ship that in the app) and proxies live
-  status, banner ads, food vendors, and social accounts.
+- Swap `USE_MOCK = true` in `myRacePassClient.ts` once the MyRacePass key
+  arrives (that module documents exactly what to change).
+- Deploy `wake-county-speedway-backend` somewhere durable and point
+  `EXPO_PUBLIC_CMS_BASE_URL` at it — see that project's README for hosting
+  notes and why its current JSON-file storage is a v1 stopgap, not a
+  long-term data store.
 - Once Apple Developer enrollment clears: create the subscription group +
-  `wake-county-speedway` app record in App Store Connect, add the
-  `react-native-iap` config plugin, and do an EAS/bare build for real
-  StoreKit + APNs testing.
+  `wake-county-speedway` app record in App Store Connect, register the
+  Apple Pay merchant ID referenced in `app.json`
+  (`merchant.com.wakecountyspeedway.app`), and do an EAS/bare build for
+  real StoreKit + Stripe PaymentSheet + APNs testing (none of the three
+  fully function in plain Expo Go).
 - App icon / splash assets referenced in `app.json` (`./assets/icon.png`,
   `./assets/notification-icon.png`) still need to be supplied.

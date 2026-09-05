@@ -99,9 +99,12 @@ a separate, unrelated app in `overlay-studio/`, alongside this one — it
 ends up live at `https://<owner>.github.io/desktop-tutorial/overlay-studio/`.
 
 This repo also hosts **[Wake County Speedway](wake-county-speedway/README.md)**,
-a separate, unrelated React Native (Expo) iOS app in `wake-county-speedway/`.
-It's a native mobile app, not a static site, so it isn't part of the Pages
-deploy above — see its own README for setup and status.
+a separate, unrelated React Native (Expo) iOS app in `wake-county-speedway/`,
+plus its small **[backend](wake-county-speedway-backend/README.md)** in
+`wake-county-speedway-backend/` (Stripe checkout, Mux live-status proxy,
+and editable-without-a-release content). Neither is a static site, so
+neither is part of the Pages deploy above — see their own READMEs for
+setup and status.
 
 ## Project structure
 

@@ -1,0 +1,7 @@
+[
+  { "id": "tee-track-logo", "name": "Track Logo Tee", "priceUsd": 24 },
+  { "id": "hoodie-victory-lane", "name": "Victory Lane Hoodie", "priceUsd": 48 },
+  { "id": "hat-snapback", "name": "Speedway Snapback", "priceUsd": 22 },
+  { "id": "koozie-checkered", "name": "Checkered Flag Koozie", "priceUsd": 8 },
+  { "id": "diecast-champion", "name": "Champion's Car Diecast (1:24)", "priceUsd": 35 }
+]

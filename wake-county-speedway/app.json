@@ -21,6 +21,13 @@
           "icon": "./assets/notification-icon.png",
           "color": "#c8102e"
         }
+      ],
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": "merchant.com.wakecountyspeedway.app",
+          "enableGooglePay": false
+        }
       ]
     ],
     "extra": {
