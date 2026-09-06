@@ -22,17 +22,17 @@ available in this build environment and isn't needed yet since the Apple
 Developer enrollment is still pending anyway. Expo's managed workflow is
 still React Native under the hood (same `react-native` core, same APIs) and
 lets the whole app — screens, navigation, mock data — be built and
-typechecked now. `react-native-iap` and `@stripe/stripe-react-native` are
-both native modules; full StoreKit and real-card testing require an EAS
-Build or bare workflow once enrollment clears (Stripe's PaymentSheet in
-particular needs a custom dev client — it isn't available in plain Expo Go).
+typechecked now. `@stripe/stripe-react-native` is a native module; full
+real-card testing requires an EAS Build or bare workflow once enrollment
+clears (PaymentSheet needs a custom dev client — it isn't available in
+plain Expo Go).
 
 ## Status of the two pending blockers
 
-- **Apple Developer enrollment pending** — blocks: real StoreKit
-  subscription testing, push notification certificates (APNs), and any
-  TestFlight/App Store submission. Everything else runs today in Expo Go
-  or a simulator build.
+- **Apple Developer enrollment pending** — blocks: push notification
+  certificates (APNs) and any TestFlight/App Store submission (an Apple
+  Developer account is required to submit an app at all, free or not).
+  Everything else runs today in Expo Go or a simulator build.
 - **MyRacePass API key pending** — blocks: live standings/schedule/driver
   data. `src/api/myRacePassClient.ts` has `USE_MOCK = true` and returns
   data from `src/api/mockData.ts`, shaped to match MyRacePass's v2 track
@@ -45,7 +45,7 @@ particular needs a custom dev client — it isn't available in plain Expo Go).
 ## Architecture
 
 ```
-App.tsx                  Providers (Cart, Subscription) + RootNavigator
+App.tsx                  CartProvider + StripeProvider + RootNavigator
 src/
   api/                    All external data access, each with a USE_MOCK
                           flag and a real-fetch path already written:
@@ -67,10 +67,9 @@ src/
   screens/                One file per feature screen (see below)
   components/             Shared UI: cards, banner carousel, weather
                           widget, live badge
-  context/                CartContext (merch), SubscriptionContext (Fan Pass)
-  services/               subscription.ts (StoreKit), merchCheckout.ts
-                          (Stripe PaymentIntent + PaymentSheet),
-                          notifications.ts (push)
+  context/                CartContext (merch)
+  services/               merchCheckout.ts (Stripe PaymentIntent +
+                          PaymentSheet), notifications.ts (push)
   theme/                  Colors, spacing, typography
 docs/
   PUSH_NOTIFICATIONS.md   How staff send a rainout alert today, no admin
@@ -88,7 +87,7 @@ docs/
    is hosted entirely outside this app (whatever the production partner
    already broadcasts to); the screen just shows a link + a live/offline
    flag from `cms.getLivestreamLink()` (`config/livestreamLink.ts` local
-   fallback), gated by `context/SubscriptionContext.tsx`.
+   fallback). Free for every fan — no paywall.
 4. **Social Media Feed** — `screens/SocialFeedScreen.tsx`,
    `api/socialFeed.ts`, accounts in `config/socialAccounts.ts`.
 5. **Food Vendor Highlights** — `screens/FoodVendorsScreen.tsx`,
@@ -107,32 +106,27 @@ docs/
 12. **Push Notifications** — `services/notifications.ts` (device-side),
     `docs/PUSH_NOTIFICATIONS.md` (staff-side sending).
 
-## App Store policy: payments (read this before wiring real payments)
+## App Store policy: payments
 
-The brief calls for a flat monthly subscription (replacing PPV) *and* a
-merch store — these are **not the same payment flow** under Apple's App
-Store Review Guidelines, and mixing them up is a common rejection reason:
+The app is free — no subscription, no pay-per-view, nothing gated behind
+a paywall. Livestream, standings, schedule, gallery, and every other
+feature are open to any fan who downloads the app. The **only** payment
+flow anywhere is the merch store, and it deliberately does **not** use
+Apple's in-app purchase (StoreKit):
 
-- **Flat monthly Fan Pass subscription (livestream access)** — this is
-  digital content consumed inside the app, so Guideline 3.1.1 makes
-  Apple's in-app purchase (StoreKit) **mandatory**. Implemented in
-  `services/subscription.ts` against `react-native-iap`'s real API,
-  currently mocked (`USE_MOCK = true`) since it needs a native build and an
-  App Store Connect subscription group that can't be created until the
-  developer enrollment clears.
 - **Merch store (t-shirts, hats, diecast, etc.)** — these are physical
   goods shipped to the fan. Guideline 3.1.5(a) exempts physical
   goods/services from the IAP requirement, and Apple does not allow
   StoreKit to be used for a shipped physical good in the first place.
-  `services/merchCheckout.ts` is deliberately **not** StoreKit — checkout
-  uses `@stripe/stripe-react-native`'s PaymentSheet against a PaymentIntent
-  created by the backend (`wake-county-speedway-backend`, which holds the
-  Stripe secret key and is the source of truth for prices), and the
-  checkout screen says so explicitly to the fan.
+  `services/merchCheckout.ts` uses `@stripe/stripe-react-native`'s
+  PaymentSheet against a PaymentIntent created by the backend
+  (`wake-county-speedway-backend`, which holds the Stripe secret key and
+  is the source of truth for prices), and the checkout screen says so
+  explicitly to the fan.
 
-Net: only the subscription goes through StoreKit. If a future feature adds
-digital-only merch (a wallpaper pack, a digital program), that would need
-StoreKit too — but nothing in today's catalog qualifies.
+If a future feature adds digital-only content sold inside the app (a
+wallpaper pack, a digital program), *that* would need StoreKit — but
+nothing in today's app qualifies, since nothing is gated.
 
 ## Getting started
 
@@ -162,11 +156,12 @@ Environment variables (all optional — everything mocks by default):
   `EXPO_PUBLIC_CMS_BASE_URL` at it — see that project's README for hosting
   notes and why its current JSON-file storage is a v1 stopgap, not a
   long-term data store.
-- Once Apple Developer enrollment clears: create the subscription group +
+- Once Apple Developer enrollment clears: create the
   `wake-county-speedway` app record in App Store Connect, register the
   Apple Pay merchant ID referenced in `app.json`
-  (`merchant.com.wakecountyspeedway.app`), and do an EAS/bare build for
-  real StoreKit + Stripe PaymentSheet + APNs testing (none of the three
-  fully function in plain Expo Go).
+  (`merchant.com.wakecountyspeedway.app` — optional, only needed for Apple
+  Pay in the merch checkout sheet), and do an EAS/bare build for real
+  Stripe PaymentSheet + APNs testing (neither fully functions in plain
+  Expo Go).
 - App icon / splash assets referenced in `app.json` (`./assets/icon.png`,
   `./assets/notification-icon.png`) still need to be supplied.

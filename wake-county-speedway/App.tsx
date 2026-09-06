@@ -4,7 +4,6 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StripeProvider } from '@stripe/stripe-react-native';
 import RootNavigator from './src/navigation/RootNavigator';
 import { CartProvider } from './src/context/CartContext';
-import { SubscriptionProvider } from './src/context/SubscriptionContext';
 
 // A blank publishable key disables live Stripe calls but still lets
 // PaymentSheet's own error handling take over gracefully (see
@@ -15,12 +14,10 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY} merchantIdentifier="merchant.com.wakecountyspeedway.app">
-        <SubscriptionProvider>
-          <CartProvider>
-            <StatusBar style="light" />
-            <RootNavigator />
-          </CartProvider>
-        </SubscriptionProvider>
+        <CartProvider>
+          <StatusBar style="light" />
+          <RootNavigator />
+        </CartProvider>
       </StripeProvider>
     </SafeAreaProvider>
   );

@@ -7,10 +7,9 @@ import type { CartLine } from '../context/CartContext';
  * Apple's in-app purchase requirement — and Apple does not allow StoreKit
  * to be used for a shipped physical good in the first place. Every item in
  * the merch catalog (tees, hats, diecast, etc.) is a physical, shipped
- * good, so checkout here goes through Stripe, never react-native-iap/
- * StoreKit. Only the flat monthly subscription (services/subscription.ts)
- * is digital content unlocked inside the app, so only that one uses
- * StoreKit.
+ * good, so checkout here goes through Stripe, never StoreKit. The rest of
+ * the app (livestream, standings, schedule, etc.) is free, so this is the
+ * only payment flow anywhere in the app.
  *
  * Real checkout needs the backend in wake-county-speedway-backend/ (it
  * holds the Stripe secret key and is the source of truth for prices — see
