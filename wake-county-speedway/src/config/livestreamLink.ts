@@ -8,7 +8,7 @@ import type { LivestreamLink } from '../api/cms';
  * backend's PUT /livestream-link.
  */
 export const localLivestreamLink: LivestreamLink = {
-  url: 'https://www.youtube.com/@WakeCountySpeedway/live',
+  url: 'https://highvelocity.tv/',
   label: 'Friday Night Racing',
   isLive: false,
 };
