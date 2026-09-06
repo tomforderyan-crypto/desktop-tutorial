@@ -1,8 +1,11 @@
 /**
  * Race-day weather. Shape mirrors OpenWeatherMap's "One Call" current +
  * daily response, trimmed to the fields the widget needs. No manual admin
- * input required — swap USE_MOCK off and set EXPO_PUBLIC_OPENWEATHER_API_KEY
- * once a key is provisioned.
+ * input required. Falls back to the mock snapshot below whenever
+ * EXPO_PUBLIC_OPENWEATHER_API_KEY isn't set, regardless of USE_MOCK, so a
+ * build without the key never breaks. Note: OpenWeatherMap's One Call 3.0
+ * endpoint (used here) needs a separate free subscription beyond just
+ * having an API key — a brand-new key isn't auto-enrolled.
  */
 export interface WeatherSnapshot {
   tempF: number;
@@ -13,7 +16,7 @@ export interface WeatherSnapshot {
   asOfIso: string;
 }
 
-const USE_MOCK = true;
+const USE_MOCK = false;
 const OPENWEATHER_API_KEY = process.env.EXPO_PUBLIC_OPENWEATHER_API_KEY ?? '';
 // Wake County Speedway approximate coordinates (Raleigh, NC area).
 const LAT = 35.77;
