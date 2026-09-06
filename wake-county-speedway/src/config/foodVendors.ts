@@ -1,0 +1,23 @@
+import type { FoodVendor } from '../api/cms';
+
+/** Fallback food vendor list. Add/remove vendors here or via the CMS backend. */
+export const localFoodVendors: FoodVendor[] = [
+  {
+    id: 'vendor-pit-road-grill',
+    name: 'Pit Road Grill',
+    description: 'Burgers, chicken tenders, and loaded fries near turn 1.',
+    photoUrl: 'https://placehold.co/400x260/16181d/f5f5f5?text=Pit+Road+Grill',
+  },
+  {
+    id: 'vendor-victory-lane-bbq',
+    name: 'Victory Lane BBQ',
+    description: 'Slow-smoked pulled pork and brisket plates.',
+    photoUrl: 'https://placehold.co/400x260/16181d/f5f5f5?text=Victory+Lane+BBQ',
+  },
+  {
+    id: 'vendor-checkered-flag-sweets',
+    name: 'Checkered Flag Sweets',
+    description: 'Funnel cakes, kettle corn, and shaved ice.',
+    photoUrl: 'https://placehold.co/400x260/16181d/f5f5f5?text=Checkered+Flag+Sweets',
+  },
+];

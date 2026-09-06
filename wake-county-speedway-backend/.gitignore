@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.env
+.env.local
+
+# Runtime content/order files — the seeds in data/*.seed.json ship with the
+# repo, but data written by PUT/checkout requests should not be committed.
+data/bannerAds.json
+data/foodVendors.json
+data/socialAccounts.json
+data/products.json
+data/orders.json
