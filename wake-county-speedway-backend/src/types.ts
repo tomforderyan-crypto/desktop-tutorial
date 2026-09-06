@@ -22,6 +22,12 @@ export interface SocialAccount {
   displayName: string;
 }
 
+export interface LivestreamLink {
+  url: string;
+  label: string;
+  isLive: boolean;
+}
+
 export interface OrderLine {
   productId: string;
   name: string;

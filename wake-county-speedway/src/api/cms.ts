@@ -10,6 +10,7 @@
 import { localBannerAds } from '../config/bannerAds';
 import { localFoodVendors } from '../config/foodVendors';
 import { localSocialAccounts } from '../config/socialAccounts';
+import { localLivestreamLink } from '../config/livestreamLink';
 
 export const CMS_BASE_URL = process.env.EXPO_PUBLIC_CMS_BASE_URL ?? '';
 
@@ -37,6 +38,12 @@ export interface SocialAccount {
   displayName: string;
 }
 
+export interface LivestreamLink {
+  url: string;
+  label: string;
+  isLive: boolean;
+}
+
 async function fetchJsonOrFallback<T>(path: string, fallback: T): Promise<T> {
   if (!CMS_BASE_URL) return fallback;
   try {
@@ -53,4 +60,6 @@ export const cms = {
   getFoodVendors: () => fetchJsonOrFallback<FoodVendor[]>('/food-vendors', localFoodVendors),
   getSocialAccounts: () =>
     fetchJsonOrFallback<SocialAccount[]>('/social-accounts', localSocialAccounts),
+  getLivestreamLink: () =>
+    fetchJsonOrFallback<LivestreamLink>('/livestream-link', localLivestreamLink),
 };

@@ -1,36 +1,38 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Video, ResizeMode } from 'expo-av';
+import { Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { Card } from '../components/Card';
 import { LiveBadge } from '../components/LiveBadge';
 import { colors, radii, spacing, typography } from '../theme/theme';
-import { getLiveStreamStatus, type LiveStreamStatus } from '../api/mux';
+import { cms, type LivestreamLink } from '../api/cms';
 import { useSubscription } from '../context/SubscriptionContext';
 
+/**
+ * The stream itself is hosted entirely outside this app (whatever the
+ * production partner already broadcasts to — YouTube Live, Facebook Live,
+ * etc.), so this screen is just a link plus a live/offline flag staff flip
+ * from the CMS backend (see cms.ts / config/livestreamLink.ts) — no video
+ * player or streaming infrastructure of our own.
+ */
 export default function LivestreamScreen() {
-  const [stream, setStream] = useState<LiveStreamStatus | null>(null);
+  const [link, setLink] = useState<LivestreamLink | null>(null);
   const { status, loading, subscribe } = useSubscription();
 
   useEffect(() => {
     let mounted = true;
-    getLiveStreamStatus().then((s) => mounted && setStream(s));
-    const interval = setInterval(() => {
-      getLiveStreamStatus().then((s) => mounted && setStream(s));
-    }, 30000);
+    cms.getLivestreamLink().then((l) => mounted && setLink(l));
     return () => {
       mounted = false;
-      clearInterval(interval);
     };
   }, []);
 
-  if (!stream) return null;
+  if (!link) return null;
 
   return (
     <ScreenContainer>
       <View style={styles.header}>
-        <Text style={styles.title}>{stream.streamTitle}</Text>
-        <LiveBadge isLive={stream.isLive} />
+        <Text style={styles.title}>{link.label}</Text>
+        <LiveBadge isLive={link.isLive} />
       </View>
 
       {!status.isActive ? (
@@ -40,21 +42,20 @@ export default function LivestreamScreen() {
             Live race coverage is part of the Wake County Speedway Fan Pass — a flat monthly subscription
             (billed through your Apple ID) with no separate pay-per-view charges.
           </Text>
-          <TouchableOpacity style={styles.subscribeButton} onPress={subscribe} disabled={loading}>
-            <Text style={styles.subscribeButtonText}>{loading ? 'Please wait…' : 'Subscribe — $9.99/mo'}</Text>
+          <TouchableOpacity style={styles.actionButton} onPress={subscribe} disabled={loading}>
+            <Text style={styles.actionButtonText}>{loading ? 'Please wait…' : 'Subscribe — $9.99/mo'}</Text>
           </TouchableOpacity>
         </Card>
-      ) : stream.isLive && stream.hlsUrl ? (
-        <Video
-          source={{ uri: stream.hlsUrl }}
-          style={styles.player}
-          useNativeControls
-          resizeMode={ResizeMode.CONTAIN}
-          shouldPlay
-        />
       ) : (
-        <Card style={styles.offlineCard}>
-          <Text style={styles.offlineText}>No broadcast right now. Check the schedule for the next race night.</Text>
+        <Card style={styles.watchCard}>
+          <Text style={styles.watchBody}>
+            {link.isLive
+              ? "We're live right now — tap below to watch."
+              : 'No broadcast right now. Check the schedule for the next race night.'}
+          </Text>
+          <TouchableOpacity style={styles.actionButton} onPress={() => Linking.openURL(link.url)}>
+            <Text style={styles.actionButtonText}>Watch Live</Text>
+          </TouchableOpacity>
         </Card>
       )}
     </ScreenContainer>
@@ -64,11 +65,16 @@ export default function LivestreamScreen() {
 const styles = StyleSheet.create({
   header: { marginBottom: spacing.md, gap: spacing.sm },
   title: { ...typography.h2, color: colors.text },
-  player: { width: '100%', aspectRatio: 16 / 9, borderRadius: radii.md, backgroundColor: '#000' },
-  offlineCard: { alignItems: 'center', paddingVertical: spacing.xl },
-  offlineText: { ...typography.body, color: colors.textMuted, textAlign: 'center' },
+  watchCard: { alignItems: 'center' },
+  watchBody: { ...typography.body, color: colors.textMuted, textAlign: 'center', marginBottom: spacing.md },
   paywallTitle: { ...typography.h3, color: colors.text, marginBottom: spacing.xs },
   paywallBody: { ...typography.body, color: colors.textMuted, marginBottom: spacing.md },
-  subscribeButton: { backgroundColor: colors.primary, borderRadius: radii.md, paddingVertical: spacing.md, alignItems: 'center' },
-  subscribeButtonText: { ...typography.h3, color: '#fff' },
+  actionButton: {
+    backgroundColor: colors.primary,
+    borderRadius: radii.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    alignItems: 'center',
+  },
+  actionButtonText: { ...typography.h3, color: '#fff' },
 });

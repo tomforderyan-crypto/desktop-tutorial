@@ -2,7 +2,6 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { contentRouter } from './routes/content';
-import { livestreamRouter } from './routes/livestream';
 import { checkoutRouter, stripeWebhookRouter } from './routes/checkout';
 
 const app = express();
@@ -20,7 +19,6 @@ app.get('/health', (_req, res) => {
 });
 
 app.use(contentRouter);
-app.use(livestreamRouter);
 app.use('/checkout', checkoutRouter);
 
 const port = Number(process.env.PORT ?? 4000);

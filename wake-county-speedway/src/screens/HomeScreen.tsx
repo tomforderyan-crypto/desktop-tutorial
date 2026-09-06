@@ -10,7 +10,7 @@ import { WeatherWidget } from '../components/WeatherWidget';
 import { LiveBadge } from '../components/LiveBadge';
 import { colors, spacing, typography } from '../theme/theme';
 import { myRacePass } from '../api/myRacePassClient';
-import { getLiveStreamStatus } from '../api/mux';
+import { cms } from '../api/cms';
 import type { MpEvent } from '../api/types';
 import type { TabParamList } from '../navigation/types';
 
@@ -21,7 +21,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     myRacePass.getSchedule().then((events) => setNextEvent(events[0] ?? null));
-    getLiveStreamStatus().then((s) => setIsLive(s.isLive));
+    cms.getLivestreamLink().then((link) => setIsLive(link.isLive));
   }, []);
 
   return (

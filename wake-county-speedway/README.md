@@ -8,11 +8,12 @@ points-standings Google Apps Script informed the data model below.
 
 A small backend lives alongside this app in
 [`../wake-county-speedway-backend`](../wake-county-speedway-backend/README.md) —
-it holds the Mux and Stripe secrets and serves the editable-without-a-release
-content (banner ads, food vendors, social accounts). Run it locally (or
-point at a deployed instance) and set `EXPO_PUBLIC_CMS_BASE_URL` to enable
-the real merch checkout and live-status feed; without it, both fall back to
-mocks so the app still runs standalone.
+it holds the Stripe secret key and serves the editable-without-a-release
+content (banner ads, food vendors, social accounts, the livestream link).
+Run it locally (or point at a deployed instance) and set
+`EXPO_PUBLIC_CMS_BASE_URL` to enable the real merch checkout; without it,
+checkout falls back to a mock success and the content falls back to local
+defaults, so the app still runs standalone.
 
 ## Why Expo
 
@@ -52,16 +53,15 @@ src/
     mockData.ts           Mock standings/drivers/schedule/classes
     myRacePassClient.ts   Standings, drivers, classes, schedule
     weather.ts            Race-day weather (OpenWeatherMap shape)
-    mux.ts                Livestream live/offline status + playback ID
-    cms.ts                Banner ads / food vendors / social accounts,
-                           backed by a lightweight backend with local
-                           fallback (see config/)
+    cms.ts                Banner ads / food vendors / social accounts /
+                           livestream link, backed by a lightweight
+                           backend with local fallback (see config/)
     socialFeed.ts          Social post feed (Meta Graph API shape)
     gallery.ts             Event photo/video gallery
     merchCatalog.ts         Merch product catalog
   config/                 Local fallback content editable without touching
                           screen code: bannerAds.ts, foodVendors.ts,
-                          socialAccounts.ts
+                          socialAccounts.ts, livestreamLink.ts
   navigation/             Bottom tabs (Home/Standings/Schedule/Merch/More)
                           + a More stack + root-level detail screens
   screens/                One file per feature screen (see below)
@@ -84,8 +84,11 @@ docs/
 2. **Merchandise Store** — `screens/merch/*` (Catalog → Product Detail →
    Cart → Checkout), `context/CartContext.tsx`, `services/merchCheckout.ts`
    (Stripe PaymentSheet against the backend, mock fallback with no backend).
-3. **Livestream Link** — `screens/LivestreamScreen.tsx`, `api/mux.ts`,
-   gated by `context/SubscriptionContext.tsx`.
+3. **Livestream Link** — `screens/LivestreamScreen.tsx`. The stream itself
+   is hosted entirely outside this app (whatever the production partner
+   already broadcasts to); the screen just shows a link + a live/offline
+   flag from `cms.getLivestreamLink()` (`config/livestreamLink.ts` local
+   fallback), gated by `context/SubscriptionContext.tsx`.
 4. **Social Media Feed** — `screens/SocialFeedScreen.tsx`,
    `api/socialFeed.ts`, accounts in `config/socialAccounts.ts`.
 5. **Food Vendor Highlights** — `screens/FoodVendorsScreen.tsx`,
@@ -144,7 +147,7 @@ Environment variables (all optional — everything mocks by default):
 - `EXPO_PUBLIC_MYRACEPASS_API_KEY`
 - `EXPO_PUBLIC_OPENWEATHER_API_KEY`
 - `EXPO_PUBLIC_CMS_BASE_URL` — the backend's URL (banner ads / food vendors
-  / social accounts / Mux live-status proxy / Stripe checkout). Run
+  / social accounts / livestream link / Stripe checkout). Run
   `wake-county-speedway-backend` locally at its default `http://localhost:4000`
   to try the real merch checkout flow.
 - `EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY` — Stripe's publishable (not secret)

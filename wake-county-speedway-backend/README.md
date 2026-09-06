@@ -4,11 +4,10 @@ The small backend behind the [Wake County Speedway](../wake-county-speedway)
 app's `EXPO_PUBLIC_CMS_BASE_URL`. It exists for exactly the things that
 can't live safely or manageably inside the mobile app itself:
 
-- **Secrets** — the Mux token and Stripe secret key must never ship inside
-  the app binary.
-- **Editable-without-a-release content** — banner ads, food vendors, and
-  which social accounts feed the app can change without an App Store
-  resubmission.
+- **Secrets** — the Stripe secret key must never ship inside the app binary.
+- **Editable-without-a-release content** — banner ads, food vendors, which
+  social accounts feed the app, and the livestream link/live-flag can
+  change without an App Store resubmission.
 - **Payment** — creating a Stripe PaymentIntent requires a secret key call
   that has to happen server-side.
 
@@ -26,13 +25,31 @@ choice, not a permanent one).
 | PUT    | `/food-vendors`                | admin key   | Replace the vendor list |
 | GET    | `/social-accounts`             | none        | Accounts the Social tab pulls from |
 | PUT    | `/social-accounts`             | admin key   | Replace the account list |
-| GET    | `/livestream/status`           | none        | `{ isLive, playbackId, streamTitle }`, proxied from Mux |
+| GET    | `/livestream-link`             | none        | `{ url, label, isLive }` — the stream is hosted elsewhere (YouTube/Facebook Live/etc.); this is just the link + a live flag |
+| PUT    | `/livestream-link`             | admin key   | Replace the link/label/live flag |
 | POST   | `/checkout/create-payment-intent` | none     | Creates a Stripe PaymentIntent + a `pending` order |
 | GET    | `/checkout/orders/:id`         | none        | Order status lookup |
 | POST   | `/webhooks/stripe`             | Stripe sig  | Marks an order `paid`/`failed` from Stripe's webhook |
 | GET    | `/health`                      | none        | Liveness check |
 
 Admin-key routes expect a `x-admin-key: <ADMIN_API_KEY>` header.
+
+## Going live
+
+There's no video infrastructure here — the stream itself runs entirely on
+whatever platform the production partner already broadcasts to (YouTube
+Live, Facebook Live, etc.). Staff flip the live flag when a broadcast
+starts and ends:
+
+```bash
+curl -X PUT https://<backend-url>/livestream-link \
+  -H "Content-Type: application/json" \
+  -H "x-admin-key: <ADMIN_API_KEY>" \
+  -d '{"url":"https://youtube.com/...","label":"Friday Night Racing","isLive":true}'
+```
+
+Same call with `"isLive":false` when the broadcast ends. The app polls
+this on the Home and Livestream screens to show the live/offline badge.
 
 ## Merch pricing lives here, not just in the app
 
