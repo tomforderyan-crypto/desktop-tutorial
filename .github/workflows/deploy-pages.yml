@@ -33,12 +33,24 @@ jobs:
         working-directory: overlay-studio
         env:
           GITHUB_PAGES: true
-      # Fieldside owns the site root; Overlay Studio is a separate app nested
-      # under /overlay-studio/ in the same Pages deployment (GitHub Pages
-      # only serves one artifact per repo).
+      - run: npm ci
+        working-directory: photo-wall
+      # The Supabase URL and publishable key are public by design (the
+      # database rules in photo-wall/supabase/setup.sql decide what they can
+      # do), so they're repository variables rather than secrets.
+      - run: npm run build
+        working-directory: photo-wall
+        env:
+          GITHUB_PAGES: true
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_KEY: ${{ vars.VITE_SUPABASE_KEY }}
+      # Fieldside owns the site root; Overlay Studio and Photo Wall are
+      # separate apps nested under their own folders in the same Pages
+      # deployment (GitHub Pages only serves one artifact per repo).
       - run: |
-          mkdir -p dist/overlay-studio
+          mkdir -p dist/overlay-studio dist/photo-wall
           cp -r overlay-studio/dist/. dist/overlay-studio/
+          cp -r photo-wall/dist/. dist/photo-wall/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
