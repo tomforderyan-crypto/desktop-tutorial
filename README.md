@@ -98,6 +98,13 @@ The same workflow also builds and deploys **[Overlay Studio](overlay-studio/READ
 a separate, unrelated app in `overlay-studio/`, alongside this one — it
 ends up live at `https://<owner>.github.io/desktop-tutorial/overlay-studio/`.
 
+It also deploys **[Photo Wall](photo-wall/README.md)** from `photo-wall/`:
+people send photos from their phones, an admin approves them, and approved
+photos cycle on a full-screen display page made for a Jumbotron or a vMix
+browser input. It's live at
+`https://<owner>.github.io/desktop-tutorial/photo-wall/` once its Supabase
+backend is set up.
+
 ## Project structure
 
 ```
